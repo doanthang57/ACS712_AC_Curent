@@ -1,11 +1,11 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(0x27,16,2);
+LiquidCrystal_I2C lcd(0x27,20,4);
 /*
 Measuring Current Using ACS712
 *///--------------------------------------------------------------
 const int analogIn = A0;
-int mVperAmp = 185; // use 100 for 20A Module and 66 for 30A Module
+int mVperAmp = 100; // use 100 for 20A Module and 66 for 30A Module
 int RawValue= 0;
 int ACSoffset = 2500; 
 double Voltage = 0;
@@ -98,14 +98,11 @@ if(currentTime >= (cloopTime + 1000))
   Serial.print((float)lit,3); // Print litres/hour
   Serial.println("L");
 }
- unsigned int x=0;
-  float average = 0;
-   for(int i = 0; i < 1000; i++) {
-   average = average + (.049 * analogRead(A0) -25);// for 20A mode
-   delay(1);
- }
- average = abs(average/1000);
- if(average > 0.1)
+ Voltage = getVPP();
+ VRMS = (Voltage/2.0) *0.707; 
+ AmpsRMS = (VRMS * 1000)/mVperAmp - 0.135;
+
+  if(AmpsRMS > 0.1)
  {
   Voltage = 220;
  }
@@ -117,10 +114,10 @@ if(currentTime >= (cloopTime + 1000))
  Serial.print(Voltage);
  Serial.println("V");
  Serial.print("Current :");
- Serial.print(average);
+ Serial.print(AmpsRMS);
  Serial.println("A");
  delay(50);
- Walt = Voltage * average;
+ Walt = Voltage * AmpsRMS;
  lcd.clear();
  lcd.setCursor(0,0);
  lcd.print("Nuoc =");
